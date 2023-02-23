@@ -19,18 +19,14 @@
 
 ## Node.js
 ### Install dependencies
-```npm install```
-
 ```yarn install```
 
 ### Install [PM2](https://pm2.keymetrics.io/docs/usage/quick-start/) (Optional)
 ```npm install pm2 -g```
 
 ### Run
-```npm run start```
-
 ```yarn start```
-
+or
 ```pm2 start ecosystem.config.js && pm2 logs```
 
 ## [RabbitMQ](https://www.rabbitmq.com/download.html) (Docker)
