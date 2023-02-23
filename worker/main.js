@@ -17,6 +17,8 @@ const worker = async () => {
 
     channel.prefetch(1);
 
+    await channel.bindQueue(q.queue, "logs", "");
+
     console.log(`[${workerName}] - Running`);
 
     channel.consume(q.queue, async (msg) => {
