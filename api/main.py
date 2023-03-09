@@ -12,6 +12,7 @@ LOG_TYPES = ("info", "warning", "error")
 
 app = FastAPI()
 
+
 class Log(BaseModel):
     type: str
     message: str
@@ -21,6 +22,7 @@ class Log(BaseModel):
 def read_root():
     return "running"
 
+
 @app.post("/log", status_code=status.HTTP_200_OK)
 def send_message(log: Log, response: Response):
     try:
@@ -29,7 +31,7 @@ def send_message(log: Log, response: Response):
                 content='Invalid log type. Use either "info", "warning" or "error".',
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        
+
         data = {
             "type": log.type,
             "message": log.message
