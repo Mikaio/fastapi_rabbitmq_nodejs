@@ -1,37 +1,54 @@
 const amqp = require("amqplib");
 
 const worker = async () => {
-    const con = await amqp.connect("amqp://localhost");
+    try {
+        const con = await amqp.connect("amqp://localhost");
 
-    const channel = await con.createChannel();
+        con.on("close", () => {
+            console.log("connection to RabbitQM closed!");
+            setTimeout(worker, 5000);
+        });
 
-    const workerName = `worker-${process.pid}`;
+        const channel = await con.createChannel();
 
-    await channel.assertExchange("logs", "direct", {
-        durable: true,
-    });
+        const workerName = `worker-${process.pid}`;
 
-    const q = await channel.assertQueue("logs_queue", {
-        durable: true,
-    });
+        await channel.assertExchange("logs", "direct", {
+            durable: true,
+        });
 
-    channel.prefetch(1);
+        const q = await channel.assertQueue("logs_queue", {
+            durable: true,
+        });
 
-    await channel.bindQueue(q.queue, "logs", "");
+        channel.prefetch(1);
 
-    console.log(`[${workerName}] - Running`);
+        await channel.bindQueue(q.queue, "logs", "");
 
-    channel.consume(q.queue, async (msg) => {
-        const data = msg.content.toString();
-        console.log(`[${workerName}] - Received: ${data}`);
+        console.log(`[${workerName}] - Running`);
 
-        await new Promise((r) => setTimeout(r, 3000));
-        console.log(`[${workerName}] - Finished`);
+        channel.consume(q.queue, async (msg) => {
+            try {
+                const data = msg.content.toString();
+                console.log(`[${workerName}] - Received: ${data}`);
 
-        channel.ack(msg);
-    }, {
-        noAck: false,
-    });
+                await new Promise((r) => setTimeout(r, 6000));
+                console.log(`[${workerName}] - Finished`);
+
+                channel.ack(msg);
+            } catch (err) {
+                if (err.message === "Channel closed")
+                    throw new Error("Channel closed");
+                console.log("error before acknowledment:", err);
+            }
+        }, {
+            noAck: false,
+        });
+    } catch (err) {
+        console.log("error outside:", err)
+        setTimeout(worker, 5000);
+    }
+
 };
 
 worker();
